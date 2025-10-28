@@ -8,13 +8,13 @@ import {
   hideLoader,
   showLoadMoreButton,
   hideLoadMoreButton,
-  loadMore,
+  loader,
   gallery,
   lightbox,
 } from './js/render-functions.js';
 
 const form = document.querySelector('.form');
-
+const loadMore = document.querySelector('.load-more');
 let page = 1;
 let query = '';
 let totalHits = 0;
@@ -32,10 +32,12 @@ async function handlerSubmit(event) {
       message: 'Please enter a search query.',
       position: 'topRight',
     });
+    hideLoadMoreButton();
     return;
   }
 
   clearGallery();
+  hideLoadMoreButton();
   page = 1;
   showLoader();
   try {
@@ -46,12 +48,13 @@ async function handlerSubmit(event) {
         title: 'No results',
         message: 'Sorry, no images found.',
       });
+      hideLoadMoreButton();
       return;
     }
     createGallery(data.hits);
     if (totalHits > page * 15) showLoadMoreButton();
   } catch (error) {
-    iziToast.error({ title: 'Error', message: error.message });
+    iziToast.error({ title: 'Error', message: 'Something went wrong.' });
   } finally {
     hideLoader();
     event.target.reset();
@@ -60,7 +63,7 @@ async function handlerSubmit(event) {
 
 async function onLoadMore() {
   page += 1;
-
+  hideLoadMoreButton();
   showLoader();
   try {
     const data = await getImagesByQuery(query, page);
@@ -68,10 +71,12 @@ async function onLoadMore() {
     smoothScroll();
     if (page * 15 >= totalHits) {
       hideLoadMoreButton();
-      iziToast.warning({
+      iziToast.success({
         title: 'End',
         message: "We're sorry, but you've reached the end of search results.",
       });
+    } else {
+      showLoadMoreButton();
     }
   } catch (error) {
     iziToast.error({
@@ -86,5 +91,7 @@ function smoothScroll() {
   const card = document.querySelector('.gallery .gallery-item');
   const info = card.getBoundingClientRect();
   const height = info.height;
-  window.scrollBy({ top: height * 1.5, behavior: 'smooth' });
+  window.scrollBy({ top: height * 2, behavior: 'smooth' });
 }
+
+console.log('loader:', loader);
